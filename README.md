@@ -35,7 +35,7 @@ The system is designed around three key questions:
 
 ## Key Features
 
-### 🌱 Phenology-Based Risk Modelling
+### Phenology-Based Risk Modelling
 
 Instead of treating the growing season as a single period, P.R.I.M.A. maps weather conditions to different stages of almond development.
 
@@ -53,7 +53,7 @@ This allows the model to capture **when** a weather event occurs, rather than on
 
 ---
 
-### 🤖 Ensemble Claim Prediction
+### Ensemble Claim Prediction
 
 P.R.I.M.A. combines three machine learning models:
 
@@ -72,7 +72,7 @@ This approach combines different model architectures to capture nonlinear relati
 
 ---
 
-### 📊 Explainable AI
+### Explainable AI
 
 The system uses **SHAP (SHapley Additive exPlanations)** to identify the factors contributing most strongly to an individual risk prediction.
 
@@ -82,7 +82,7 @@ This is particularly important in insurance applications where pricing decisions
 
 ---
 
-### ⚖️ Multi-Objective Optimization
+### Multi-Objective Optimization
 
 P.R.I.M.A. uses **NSGA-II (Non-dominated Sorting Genetic Algorithm II)** to optimize the weights assigned to phenology-specific risk indicators.
 
@@ -97,7 +97,7 @@ The resulting weights are used to calculate the **Viability Score**.
 
 ---
 
-### 💰 Dynamic Premium Adjustment
+### Dynamic Premium Adjustment
 
 The Viability Score summarizes the overall health and risk profile of an orchard.
 
@@ -349,14 +349,12 @@ The current research implementation has several limitations:
 
 Potential extensions include:
 
-* 🌾 Extending the framework to additional crops
-* 🛰️ Integrating satellite and UAV imagery
-* 🌦️ Incorporating real-time weather data
-* 📍 Expanding to additional agricultural regions
-* 🔄 Developing a fully interactive intra-seasonal premium adjustment system
-* ⚖️ Conducting formal fairness audits
-* 🏛️ Evaluating regulatory and actuarial compliance
-* ⚡ Improving computational efficiency for enterprise-scale deployment
+*  Extending the framework to additional crops
+*  Integrating satellite and UAV imagery
+*  Incorporating real-time weather data
+*  Expanding to additional agricultural regions
+*  Developing a fully interactive intra-seasonal premium adjustment system
+*  Conducting formal fairness audits
+*  Evaluating regulatory and actuarial compliance
+*  Improving computational efficiency for enterprise-scale deployment
 ---
-
-Please refer to the repository license for terms governing reuse and distribution.
