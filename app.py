@@ -240,6 +240,31 @@ def st_shap(plot, height=None):
     shap_html = f"<head>{shap.getjs()}</head><body>{plot.html()}</body>"
     st.components.v1.html(shap_html, height=height)
 
+def humanize_feature_name(raw_name: str) -> str:
+    """Turns a preprocessor-transformed column name (e.g. 'num__Total_Frost_Days')
+    into a readable label for narrative text."""
+    name = raw_name.split("__")[-1]  # drop ColumnTransformer/pipeline prefixes
+    return name.replace("_", " ").strip()
+
+def get_health_tier(score: float) -> tuple:
+    """Maps an Orchard Health Score to a plain-language risk tier."""
+    if score >= 85:
+        return "Excellent", "well below average risk"
+    elif score >= 70:
+        return "Good", "below average risk"
+    elif score >= 50:
+        return "Fair", "moderate risk"
+    else:
+        return "Elevated", "above average risk"
+
+def summarize_shap_drivers(shap_values, final_input, top_n=3):
+    """Returns the top_n features with the largest absolute SHAP impact,
+    as (readable_name, shap_value) pairs, largest impact first."""
+    values = shap_values.values[0]
+    names = final_input.columns
+    pairs = sorted(zip(names, values), key=lambda p: abs(p[1]), reverse=True)[:top_n]
+    return [(humanize_feature_name(n), v) for n, v in pairs]
+
 # --- Main Application ---
 def main():
     load_corporate_theme_css()
@@ -340,8 +365,13 @@ def main():
             f"{results['claim_probability']:.2%}",
             help="This is the likelihood of a claim being filed based on your specific data. Lower is better."
         )
+        health_score = results['orchard_health_score']
+        health_tier, health_tier_desc = get_health_tier(health_score)
         st.info(
-            "**Interpretation:** The **Health Score** is an overall measure of your orchard's resilience. It is directly influenced by the **Claim Probability**, which is the core risk assessment from our AI. A high Health Score indicates that your management practices and forecasted conditions are favorable.", icon="💡"
+            f"**Interpretation:** A Health Score of **{health_score:.1f}/100** places this orchard in the **{health_tier}** tier — "
+            f"{health_tier_desc} given the profile and forecast you entered. This score is directly derived from the "
+            f"**{results['claim_probability']:.1%} claim probability** our model assigned: the lower that probability, "
+            "the higher your Health Score, and the lower your premium.", icon="💡"
         )
         st.markdown("<hr style='border-color: #233554;'>", unsafe_allow_html=True)
 
@@ -353,8 +383,22 @@ def main():
         col2.metric("Traditional County Rate", f"${results['traditional_premium']:.2f}", "per acre")
         col3.metric("Your Potential Savings", f"${-diff:.2f}", f"{(-diff/results['traditional_premium'])*100:.1f}% vs. Average", delta_color="inverse")
 
+        pct_vs_county = (-diff / results['traditional_premium']) * 100 if results['traditional_premium'] else 0
+        if diff < -0.01:
+            benchmark_verdict = (
+                f"Your personalized premium is **{abs(pct_vs_county):.1f}% below** the {inputs['County']} County traditional rate — "
+                "your specific orchard profile and forecast represent lower risk than the county average."
+            )
+        elif diff > 0.01:
+            benchmark_verdict = (
+                f"Your personalized premium is **{abs(pct_vs_county):.1f}% above** the {inputs['County']} County traditional rate — "
+                "your specific orchard profile and forecast represent higher risk than the county average."
+            )
+        else:
+            benchmark_verdict = f"Your personalized premium closely matches the {inputs['County']} County traditional rate."
         st.info(
-            "**Benchmark Interpretation:** The **Traditional County Rate** is based on the median premium rate from historical actuarial data for your selected county. It serves as a standard benchmark to measure the fairness of your personalized P.R.I.M.A. premium.", icon="💡"
+            "**Benchmark Interpretation:** The **Traditional County Rate** is the median premium rate from historical actuarial "
+            f"data for your selected county. {benchmark_verdict}", icon="💡"
         )
         st.markdown("<hr style='border-color: #233554;'>", unsafe_allow_html=True)
 
@@ -381,8 +425,19 @@ def main():
             help="A yield loss of this amount would result in a claim payout equal to your premium."
         )
 
+        if premium_roi >= 15:
+            roi_note = "a strong return relative to the premium paid"
+        elif premium_roi >= 5:
+            roi_note = "a reasonable return, typical for crop insurance coverage"
+        else:
+            roi_note = "a comparatively thin return — coverage is proportionally expensive relative to liability here"
         st.info(
-            "**Interpretation:** These metrics translate your premium into tangible business terms. The **Total Coverage** represents your financial safety net. The **Coverage per Dollar Spent** acts as an ROI on your risk management investment. The **Breakeven Yield Loss** provides a clear threshold for when your insurance policy begins to pay for itself in a given season.", icon="💡"
+            "**Interpretation:** These metrics translate your premium into tangible business terms. The **Total Coverage** "
+            "represents your financial safety net. The **Coverage per Dollar Spent** acts as an ROI on your risk management "
+            "investment. The **Breakeven Yield Loss** provides a clear threshold for when your insurance policy begins to pay "
+            f"for itself in a given season. For this quote, **${premium_roi:.2f} of coverage per $1 of premium** is {roi_note}, "
+            f"and a yield loss beyond **{breakeven_yield_loss:.0f} lbs/acre** is where the policy starts covering its own cost.",
+            icon="💡"
         )
         st.markdown("<hr style='border-color: #233554;'>", unsafe_allow_html=True)
 
@@ -391,6 +446,13 @@ def main():
         st.info(
             "**How to Read This Chart:** **Red bars** represent factors that increased your risk and premium. **Blue bars** represent factors that decreased it. The length of the bar indicates the magnitude of the impact. The 'base value' is the average model prediction.", icon="💡"
         )
+        top_drivers = summarize_shap_drivers(results['shap_values'], results['final_input'], top_n=3)
+        driver_phrases = [
+            f"**{name}** ({'↑ increased' if val > 0 else '↓ decreased'} risk)"
+            for name, val in top_drivers
+        ]
+        st.markdown("**Top factors behind this prediction:** " + ", ".join(driver_phrases) + ".")
+
         shap_plot_object = shap.force_plot(artifacts['shap_explainer'].expected_value, results['shap_values'].values, results['final_input'])
         st_shap(shap_plot_object, 200)
         st.markdown("</div>", unsafe_allow_html=True)
@@ -402,6 +464,7 @@ def main():
 
         adjusted_inputs = st.session_state.inputs.copy()
         last_premium = results['dynamic_premium']
+        stage_deltas = {}
 
         stages = {
             "Dormancy (Jan-Feb)": [('Total_Chill_Day_Units', "Actual Chill Units", 0, 100)],
@@ -423,7 +486,9 @@ def main():
                         adjusted_inputs[key] = st.slider(label, min_val, max_val, int(default_value), key=slider_key)
 
                 stage_results = get_premium_and_scores(artifacts, tuple(adjusted_inputs.items()))
-                st.metric(f"Premium after {stage_name.split(' ')[0]}", f"${stage_results['dynamic_premium']:.2f}", f"${stage_results['dynamic_premium'] - last_premium:.2f}", delta_color="inverse")
+                stage_delta = stage_results['dynamic_premium'] - last_premium
+                st.metric(f"Premium after {stage_name.split(' ')[0]}", f"${stage_results['dynamic_premium']:.2f}", f"${stage_delta:.2f}", delta_color="inverse")
+                stage_deltas[stage_name] = stage_delta
                 last_premium = stage_results['dynamic_premium']
 
         st.markdown("<hr style='border-color: #233554;'>", unsafe_allow_html=True)
@@ -436,12 +501,19 @@ def main():
         summary_col1.metric("Initial Forecasted Premium", f"${initial_premium:.2f} / acre")
         summary_col2.metric("FINAL Season-Adjusted Premium", f"${final_premium:.2f} / acre", f"Total Adjustment: ${total_adjustment:+.2f}", delta_color="inverse")
 
+        biggest_stage_note = ""
+        if stage_deltas:
+            biggest_stage = max(stage_deltas, key=lambda k: abs(stage_deltas[k]))
+            biggest_delta = stage_deltas[biggest_stage]
+            if abs(biggest_delta) >= 0.01:
+                biggest_stage_note = f" The **{biggest_stage}** stage had the largest single impact, moving your premium by ${biggest_delta:+.2f}/acre."
+
         if abs(total_adjustment) < 0.01:
-            st.success("**On Track:** Your final premium has remained consistent with the initial forecast, indicating stable conditions.")
+            st.success("**On Track:** Your final premium has remained consistent with the initial forecast, indicating stable conditions." + biggest_stage_note)
         elif total_adjustment < 0:
-            st.success(f"**Favorable Season:** Better-than-expected conditions have lowered your final premium by ${-total_adjustment:.2f}/acre!")
+            st.success(f"**Favorable Season:** Better-than-expected conditions have lowered your final premium by ${-total_adjustment:.2f}/acre!" + biggest_stage_note)
         else:
-            st.warning(f"**Challenging Season:** Tougher conditions have led to a necessary premium increase of ${total_adjustment:.2f}/acre to cover the elevated risk.")
+            st.warning(f"**Challenging Season:** Tougher conditions have led to a necessary premium increase of ${total_adjustment:.2f}/acre to cover the elevated risk." + biggest_stage_note)
 
         st.markdown("</div>", unsafe_allow_html=True)
 
