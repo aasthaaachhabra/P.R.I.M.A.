@@ -116,46 +116,6 @@ The system also provides an **intra-seasonal adjustment framework**, allowing pr
 
 ---
 
-## System Architecture
-
-```text
-                 Farm & Insurance Inputs
-                          │
-                          ▼
-              ┌──────────────────────┐
-              │ Data Preprocessing    │
-              │ & Feature Engineering │
-              └──────────┬───────────┘
-                         │
-                         ▼
-             Phenology-Based Risk Features
-                         │
-                         ▼
-              ┌──────────────────────┐
-              │ Machine Learning     │
-              │                      │
-              │ CART                 │
-              │ XGBoost              │
-              │ Neural Network       │
-              └──────────┬───────────┘
-                         │
-                         ▼
-                 Ensemble Probability
-                         │
-                  ┌──────┴──────┐
-                  │             │
-                  ▼             ▼
-             SHAP Analysis   Expected Loss
-                  │             │
-                  │             ▼
-                  │      Dynamic Premium
-                  │
-                  ▼
-             Risk Explanation
-```
-
----
-
 ## Dataset
 
 The research framework uses a dataset comprising **38,000 almond orchard insurance policies covering 2020–2024**.
@@ -397,51 +357,6 @@ Potential extensions include:
 * ⚖️ Conducting formal fairness audits
 * 🏛️ Evaluating regulatory and actuarial compliance
 * ⚡ Improving computational efficiency for enterprise-scale deployment
-
 ---
-
-## Research
-
-**P.R.I.M.A.: Dynamic Premium Adjustment Model for Crop Insurance**
-
-The research proposes an interpretable dynamic premium adjustment framework integrating:
-
-**Phenology-Based Risk Features → Machine Learning → SHAP Explainability → NSGA-II Optimization → Viability Score → Dynamic Premium**
-
-The research focuses on developing a transparent pricing mechanism that can adapt to changing agricultural risk while balancing insurer sustainability and farmer fairness.
-
----
-
-## Author
-
-**Aastha Chhabra**
-Integrated MSc — Quantitative Economics & Data Science
-Birla Institute of Technology, Mesra
-
-**Research collaboration:**
-Manish Kumar Pandey
-Digital Innovation Lab, CQEDS
-Birla Institute of Technology, Mesra
-
----
-
-## Citation
-
-If you use this work in academic research, please cite:
-
-```bibtex
-@article{chhabra2026prima,
-  title={P.R.I.M.A.: Dynamic Premium Adjustment Model for Crop Insurance},
-  author={Chhabra, Aastha and Pandey, Manish Kumar},
-  year={2026},
-  institution={Birla Institute of Technology, Mesra}
-}
-```
-
----
-
-## License
-
-This repository is intended for research and educational purposes.
 
 Please refer to the repository license for terms governing reuse and distribution.
