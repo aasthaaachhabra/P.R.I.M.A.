@@ -3,6 +3,8 @@ Premium Risk Indexing and Modelling for Agriculture
 
 > **A data-driven framework for dynamic, explainable, and risk-sensitive crop insurance pricing.**
 
+App link: https://primainsurance.streamlit.app/
+
 P.R.I.M.A. (**Premium Risk Indexing and Modelling for Agriculture**) is an AI-driven crop insurance risk assessment and dynamic premium adjustment system designed to address the limitations of static actuarial pricing.
 
 The project combines **phenology-based risk modelling, machine learning, ensemble prediction, explainable AI, and multi-objective optimization** to estimate claim risk and generate individualized insurance premiums.
