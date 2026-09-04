@@ -156,8 +156,13 @@ def load_artifacts():
             'training_data': pd.read_csv('training_data.csv'),
             'shap_background': pd.read_csv('shap_background_data.csv')
         }
-        # Cache the SHAP explainer for performance
-        artifacts['shap_explainer'] = shap.TreeExplainer(artifacts['xgb_model'], artifacts['shap_background'])
+        # Cache the SHAP explainer for performance.
+        # feature_perturbation='tree_path_dependent' and no background data, because
+        # the xgboost model uses categorical splits, which shap's 'interventional'
+        # mode (triggered whenever a background dataset is passed) doesn't support.
+        artifacts['shap_explainer'] = shap.TreeExplainer(
+            artifacts['xgb_model'], feature_perturbation='tree_path_dependent'
+        )
         return artifacts
     except FileNotFoundError:
         st.error("Fatal Error: Critical model files not found. Please ensure all 8 artifacts are in the application's root directory.", icon="🚨")
