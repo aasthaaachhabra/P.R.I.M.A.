@@ -14,86 +14,106 @@ import shap
 # --- Page Setup & Global Configuration ---
 st.set_page_config(
     page_title="P.R.I.M.A. | Agricultural Risk Modeling",
-    page_icon=" ",
+    page_icon="🌳",
     layout="wide"
 )
 
 #<editor-fold desc="CSS Styling and UI Components">
 def load_corporate_theme_css():
     """
-    Loads a professional, corporate theme with a navy blue background and light blue/white text.
+    Loads a professional, dark theme built on three brand colors:
+    black (#000000) background, teal (#49c5b6) accent, white (#ffffff) text.
+    Colors are defined once as CSS variables so the palette is easy to retune.
     """
     st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
 
-    /* --- General Styles & Typography --- */
-    html, body, [class*="st-"] {
-        font-family: 'Inter', sans-serif;
+    /* ============ 1. BRAND PALETTE (edit here to retheme the whole app) ============ */
+    :root {
+        --color-bg:            #000000;                 /* App background */
+        --color-card-bg:       #0d0d0d;                  /* Card / section background */
+        --color-input-bg:      #141414;                  /* Input & widget background */
+        --color-accent:        #49c5b6;                  /* Brand teal accent */
+        --color-accent-soft:   rgba(73, 197, 182, 0.15);  /* Accent tint for subtle fills */
+        --color-border:        rgba(73, 197, 182, 0.25);  /* Card / divider borders */
+        --color-text:          #ffffff;                  /* Primary text */
+        --color-text-muted:    rgba(255, 255, 255, 0.65); /* Secondary / label text */
     }
+
+    /* ============ 2. TYPOGRAPHY ============ */
+    html, body, [class*="st-"] {
+        font-family: 'Montserrat', sans-serif;
+    }
+    h1, h2, h3, h4 {
+        color: var(--color-text);
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 700;
+    }
+
+    /* ============ 3. APP-WIDE LAYOUT ============ */
     .stApp {
-        background-color: #0a192f; /* Navy Blue background */
-        color: #ccd6f6; /* Light Blue/White text */
+        background-color: var(--color-bg);
+        color: var(--color-text);
     }
     .main .block-container {
         padding: 2rem 3rem;
         max-width: 1400px;
     }
-    h1, h2, h3, h4 {
-        color: #ffffff; /* White headers */
-    }
 
-    /* --- Content Cards & Sections --- */
+    /* ============ 4. CONTENT CARDS / SECTIONS ============ */
     .section-container {
-        background-color: #112240; /* Lighter Navy for cards */
+        background-color: var(--color-card-bg);
         padding: 2.5rem;
         border-radius: 12px;
-        border: 1px solid #233554; /* Border color */
+        border: 1px solid var(--color-border);
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
         margin-top: 2rem;
     }
     .section-container h2 {
-        border-bottom: 2px solid #64ffda; /* Light Blue accent */
+        border-bottom: 2px solid var(--color-accent);
         padding-bottom: 0.5rem;
         margin-bottom: 1.5rem;
-        color: #64ffda;
+        color: var(--color-accent);
     }
 
-    /* --- Metrics & Data Displays --- */
+    /* ============ 5. METRICS & DATA DISPLAYS ============ */
     [data-testid="stMetric"] {
-        background-color: #0a192f; /* Dark Navy for metric background */
-        border: 1px solid #233554;
+        background-color: var(--color-input-bg);
+        border: 1px solid var(--color-border);
+        border-top: 3px solid var(--color-accent);
         border-radius: 10px;
         padding: 1.5rem;
     }
     [data-testid="stMetricLabel"] {
         font-weight: 500;
-        color: #8892b0; /* Lighter secondary text */
+        color: var(--color-text-muted);
     }
     [data-testid="stMetricValue"] {
         font-size: 2.5rem;
         font-weight: 700;
-        color: #ffffff;
+        color: var(--color-text);
     }
     [data-testid="stMetricDelta"] {
-        color: #64ffda; /* Light blue for delta */
+        color: var(--color-accent);
     }
 
-    /* --- Interactive Widgets --- */
+    /* ============ 6. INTERACTIVE WIDGETS ============ */
     .st-emotion-cache-1r6slb0, .st-emotion-cache-1y4p8pa { /* Text input, selectbox */
-        background-color: #112240;
+        background-color: var(--color-input-bg);
     }
     .st-emotion-cache-1v0f73p { /* Slider track */
-        background-color: #233554;
+        background-color: var(--color-border);
     }
     .st-emotion-cache-13k6pro { /* Slider thumb */
-        background-color: #64ffda;
+        background-color: var(--color-accent);
     }
 
-    /* --- Buttons --- */
+    /* ============ 7. BUTTONS ============ */
     .stButton > button {
         background-color: transparent;
-        color: #64ffda; /* Light Blue text */
-        border: 2px solid #64ffda; /* Light Blue border */
+        color: var(--color-accent);
+        border: 2px solid var(--color-accent);
         border-radius: 8px;
         padding: 0.8rem 2rem;
         font-weight: 600;
@@ -103,27 +123,35 @@ def load_corporate_theme_css():
         float: right;
     }
     .stButton > button:hover {
-        background-color: #64ffda; /* Light Blue background on hover */
-        color: #0a192f; /* Dark text on hover */
+        background-color: var(--color-accent);
+        color: #000000;
     }
 
-    /* --- Header & Title --- */
+    /* ============ 8. HEADER & TITLE ============ */
     .title-container {
         text-align: center;
         margin-bottom: 2rem;
     }
     .title-container h1 {
         font-size: 2.75rem;
-        font-weight: 700;
+        font-weight: 800;
         letter-spacing: -1px;
     }
     .title-container h2 {
         font-size: 1.75rem;
         font-weight: 500;
-        color: #8892b0; /* Lighter secondary text for subtitle */
+        color: var(--color-text-muted);
+        border-bottom: none; /* override the generic section-container h2 rule */
     }
 
-    /* --- Hide Streamlit Branding --- */
+    /* ============ 9. STEP MECHANISM CARDS (How It Works) ============ */
+    .mechanism-step h4 {
+        color: var(--color-accent);
+        margin-bottom: 0.5rem;
+    }
+
+    /* ============ 10. MISC ============ */
+    hr { border-color: var(--color-border) !important; }
     #MainMenu, footer, .stDeployButton, header { visibility: hidden; }
     </style>
     """, unsafe_allow_html=True)
@@ -139,6 +167,38 @@ def display_prima_header():
         """,
         unsafe_allow_html=True
     )
+
+def display_mechanism_section():
+    """Plain-language explainer of how the tool works, shown before the input form."""
+    st.markdown('<div class="section-container">', unsafe_allow_html=True)
+    st.header("How P.R.I.M.A. Works")
+    st.write(
+        "Traditional crop insurance charges every farmer in a county the same flat rate, "
+        "regardless of how well-managed their orchard actually is. **P.R.I.M.A. replaces that "
+        "one-size-fits-all rate with a premium built specifically around your orchard** — here's how, in three steps:"
+    )
+    m1, m2, m3 = st.columns(3)
+    with m1:
+        st.markdown('<div class="mechanism-step">', unsafe_allow_html=True)
+        st.markdown("#### 📝 1. Tell us about your orchard")
+        st.write("Enter details about your trees, farming practices, and this season's weather forecast — takes about a minute.")
+        st.markdown('</div>', unsafe_allow_html=True)
+    with m2:
+        st.markdown('<div class="mechanism-step">', unsafe_allow_html=True)
+        st.markdown("#### 🤖 2. Our AI estimates your risk")
+        st.write("Three different machine learning models look at your inputs together and estimate how likely a claim is this season. We show you exactly which factors drove that estimate — nothing is a black box.")
+        st.markdown('</div>', unsafe_allow_html=True)
+    with m3:
+        st.markdown('<div class="mechanism-step">', unsafe_allow_html=True)
+        st.markdown("#### 💰 3. Get a fair, personalized premium")
+        st.write("That risk estimate directly sets your premium. We show it side-by-side with the traditional flat county rate so you can see exactly how much you're saving.")
+        st.markdown('</div>', unsafe_allow_html=True)
+    st.info(
+        "**A quick note on jargon:** \"Claim probability\" simply means *how likely you are to file an "
+        "insurance claim this season*. Lower is better — it means less risk, a higher Health Score, and a lower premium.",
+        icon="💡"
+    )
+    st.markdown('</div>', unsafe_allow_html=True)
 #</editor-fold>
 
 #<editor-fold desc="Core Logic & Backend Calculations">
@@ -269,6 +329,7 @@ def summarize_shap_drivers(shap_values, final_input, top_n=3):
 def main():
     load_corporate_theme_css()
     display_prima_header()
+    display_mechanism_section()
 
     artifacts = load_artifacts()
     if artifacts is None:
@@ -277,7 +338,7 @@ def main():
     # --- SECTION 1: USER INPUTS ---
     with st.container():
         st.markdown('<div class="section-container">', unsafe_allow_html=True)
-        st.header("Step 1: Complete Your Farm Profile")
+        st.header("Step 1 of 3: Complete Your Farm Profile")
         st.write("Provide the following details about your operation and seasonal forecast to generate a personalized insurance quote. All fields are required.")
 
         # Subsection for Farm and Management Details
@@ -307,7 +368,7 @@ def main():
                 'Mgmt_Practices_IPM': 1 if st.radio("Integrated Pest Management (IPM) Used?", ('Yes', 'No'), horizontal=True, index=0) == 'Yes' else 0,
             })
 
-        st.markdown("<hr style='border-color: #233554;'>", unsafe_allow_html=True)
+        st.markdown("<hr>", unsafe_allow_html=True)
 
         # Subsection for Insurance and Forecast Details
         col4, col5 = st.columns(2)
@@ -350,7 +411,7 @@ def main():
         results = st.session_state.results
         inputs = st.session_state.inputs
         st.markdown('<div class="section-container">', unsafe_allow_html=True)
-        st.header("Step 2: Review Your Analysis")
+        st.header("Step 2 of 3: Review Your Analysis")
 
         # --- Health Score and Claim Probability ---
         st.subheader("Orchard Risk Dashboard")
@@ -373,7 +434,7 @@ def main():
             f"**{results['claim_probability']:.1%} claim probability** our model assigned: the lower that probability, "
             "the higher your Health Score, and the lower your premium.", icon="💡"
         )
-        st.markdown("<hr style='border-color: #233554;'>", unsafe_allow_html=True)
+        st.markdown("<hr>", unsafe_allow_html=True)
 
         # --- Premium Comparison and Summary ---
         st.subheader("Premium Quote Summary")
@@ -400,7 +461,7 @@ def main():
             "**Benchmark Interpretation:** The **Traditional County Rate** is the median premium rate from historical actuarial "
             f"data for your selected county. {benchmark_verdict}", icon="💡"
         )
-        st.markdown("<hr style='border-color: #233554;'>", unsafe_allow_html=True)
+        st.markdown("<hr>", unsafe_allow_html=True)
 
         # --- Economic Interpretation Section ---
         st.subheader("Economic Interpretation & Business Impact")
@@ -435,11 +496,11 @@ def main():
             "**Interpretation:** These metrics translate your premium into tangible business terms. The **Total Coverage** "
             "represents your financial safety net. The **Coverage per Dollar Spent** acts as an ROI on your risk management "
             "investment. The **Breakeven Yield Loss** provides a clear threshold for when your insurance policy begins to pay "
-            f"for itself in a given season. For this quote, **${premium_roi:.2f} of coverage per $1 of premium** is {roi_note}, "
+            f"for itself in a given season. For this quote, **\\${premium_roi:.2f} of coverage per \\$1 of premium** is {roi_note}, "
             f"and a yield loss beyond **{breakeven_yield_loss:.0f} lbs/acre** is where the policy starts covering its own cost.",
             icon="💡"
         )
-        st.markdown("<hr style='border-color: #233554;'>", unsafe_allow_html=True)
+        st.markdown("<hr>", unsafe_allow_html=True)
 
         # --- Risk Deep Dive ---
         st.subheader("Risk Factor Analysis")
@@ -459,7 +520,7 @@ def main():
 
         # --- SECTION 3: DYNAMIC PREMIUM ADJUSTMENT ---
         st.markdown('<div class="section-container">', unsafe_allow_html=True)
-        st.header("Step 3: Track Your Premium Throughout the Season")
+        st.header("Step 3 of 3: Track Your Premium Throughout the Season")
         st.write("As the season unfolds, update the sliders below with **actual observed weather data** to dynamically adjust your premium, reflecting the true risk as it evolves.")
 
         adjusted_inputs = st.session_state.inputs.copy()
@@ -491,7 +552,7 @@ def main():
                 stage_deltas[stage_name] = stage_delta
                 last_premium = stage_results['dynamic_premium']
 
-        st.markdown("<hr style='border-color: #233554;'>", unsafe_allow_html=True)
+        st.markdown("<hr>", unsafe_allow_html=True)
         st.subheader("Final Adjusted Premium Summary")
         final_premium = last_premium
         initial_premium = results['dynamic_premium']
@@ -506,14 +567,14 @@ def main():
             biggest_stage = max(stage_deltas, key=lambda k: abs(stage_deltas[k]))
             biggest_delta = stage_deltas[biggest_stage]
             if abs(biggest_delta) >= 0.01:
-                biggest_stage_note = f" The **{biggest_stage}** stage had the largest single impact, moving your premium by ${biggest_delta:+.2f}/acre."
+                biggest_stage_note = f" The **{biggest_stage}** stage had the largest single impact, moving your premium by \\${biggest_delta:+.2f}/acre."
 
         if abs(total_adjustment) < 0.01:
             st.success("**On Track:** Your final premium has remained consistent with the initial forecast, indicating stable conditions." + biggest_stage_note)
         elif total_adjustment < 0:
-            st.success(f"**Favorable Season:** Better-than-expected conditions have lowered your final premium by ${-total_adjustment:.2f}/acre!" + biggest_stage_note)
+            st.success(f"**Favorable Season:** Better-than-expected conditions have lowered your final premium by \\${-total_adjustment:.2f}/acre!" + biggest_stage_note)
         else:
-            st.warning(f"**Challenging Season:** Tougher conditions have led to a necessary premium increase of ${total_adjustment:.2f}/acre to cover the elevated risk." + biggest_stage_note)
+            st.warning(f"**Challenging Season:** Tougher conditions have led to a necessary premium increase of \\${total_adjustment:.2f}/acre to cover the elevated risk." + biggest_stage_note)
 
         st.markdown("</div>", unsafe_allow_html=True)
 
