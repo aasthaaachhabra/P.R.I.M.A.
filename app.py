@@ -14,16 +14,16 @@ import shap
 # --- Page Setup & Global Configuration ---
 st.set_page_config(
     page_title="P.R.I.M.A. | Agricultural Risk Modeling",
-    page_icon="🌳",
+    page_icon=None,
     layout="wide"
 )
 
 #<editor-fold desc="CSS Styling and UI Components">
 def load_corporate_theme_css():
     """
-    Loads a professional, dark theme built on three brand colors:
-    black (#000000) background, teal (#49c5b6) accent, white (#ffffff) text.
-    Colors are defined once as CSS variables so the palette is easy to retune.
+    Loads a dark theme built on the 5-color reference palette:
+    black page background, with a teal 'focus layer' for the intro section,
+    dark-navy content cards, and mint/white used for high-contrast highlights.
     """
     st.markdown("""
     <style>
@@ -31,14 +31,13 @@ def load_corporate_theme_css():
 
     /* ============ 1. BRAND PALETTE (edit here to retheme the whole app) ============ */
     :root {
-        --color-bg:            #000000;                 /* App background */
-        --color-card-bg:       #0d0d0d;                  /* Card / section background */
-        --color-input-bg:      #141414;                  /* Input & widget background */
-        --color-accent:        #49c5b6;                  /* Brand teal accent */
-        --color-accent-soft:   rgba(73, 197, 182, 0.15);  /* Accent tint for subtle fills */
-        --color-border:        rgba(73, 197, 182, 0.25);  /* Card / divider borders */
-        --color-text:          #ffffff;                  /* Primary text */
-        --color-text-muted:    rgba(255, 255, 255, 0.65); /* Secondary / label text */
+        --color-bg:         #000000;  /* True black page background */
+        --color-navy:       #17252A;  /* Darkest palette tone: standard content boxes */
+        --color-teal-dark:  #2B7A78;  /* 'Focus layer' teal: the intro/hero panel */
+        --color-teal:       #3AAFA9;  /* Accent teal: borders, buttons, highlights */
+        --color-mint:       #DEF2F1;  /* Pale mint: high-contrast highlight surfaces */
+        --color-white:      #FEFFFF;  /* Primary text on dark surfaces */
+        --color-border:     rgba(58, 175, 169, 0.3); /* Teal-tinted border */
     }
 
     /* ============ 2. TYPOGRAPHY ============ */
@@ -46,7 +45,7 @@ def load_corporate_theme_css():
         font-family: 'Montserrat', sans-serif;
     }
     h1, h2, h3, h4 {
-        color: var(--color-text);
+        color: var(--color-white);
         font-family: 'Montserrat', sans-serif;
         font-weight: 700;
     }
@@ -54,7 +53,7 @@ def load_corporate_theme_css():
     /* ============ 3. APP-WIDE LAYOUT ============ */
     .stApp {
         background-color: var(--color-bg);
-        color: var(--color-text);
+        color: var(--color-white);
     }
     .main .block-container {
         padding: 2rem 3rem;
@@ -63,57 +62,66 @@ def load_corporate_theme_css():
 
     /* ============ 4. CONTENT CARDS / SECTIONS ============ */
     .section-container {
-        background-color: var(--color-card-bg);
+        background-color: var(--color-navy);
         padding: 2.5rem;
         border-radius: 12px;
         border: 1px solid var(--color-border);
-        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
         margin-top: 2rem;
     }
     .section-container h2 {
-        border-bottom: 2px solid var(--color-accent);
+        border-bottom: 2px solid var(--color-teal);
         padding-bottom: 0.5rem;
         margin-bottom: 1.5rem;
-        color: var(--color-accent);
+        color: var(--color-teal);
+    }
+    /* Focus layer: the teal hero/intro panel, mirroring the reference site's solid-teal block */
+    .focus-layer {
+        background-color: var(--color-teal-dark) !important;
+        border: 1px solid var(--color-teal) !important;
+    }
+    .focus-layer h2, .focus-layer .mechanism-step h4 {
+        color: var(--color-mint) !important;
+        border-bottom-color: var(--color-mint) !important;
     }
 
-    /* ============ 5. METRICS & DATA DISPLAYS ============ */
+    /* ============ 5. METRICS & DATA DISPLAYS (mint highlight surfaces) ============ */
     [data-testid="stMetric"] {
-        background-color: var(--color-input-bg);
+        background-color: var(--color-mint);
         border: 1px solid var(--color-border);
-        border-top: 3px solid var(--color-accent);
+        border-top: 3px solid var(--color-teal);
         border-radius: 10px;
         padding: 1.5rem;
     }
     [data-testid="stMetricLabel"] {
         font-weight: 500;
-        color: var(--color-text-muted);
+        color: rgba(23, 37, 42, 0.7);
     }
     [data-testid="stMetricValue"] {
         font-size: 2.5rem;
         font-weight: 700;
-        color: var(--color-text);
+        color: var(--color-navy);
     }
     [data-testid="stMetricDelta"] {
-        color: var(--color-accent);
+        color: var(--color-teal-dark);
     }
 
     /* ============ 6. INTERACTIVE WIDGETS ============ */
     .st-emotion-cache-1r6slb0, .st-emotion-cache-1y4p8pa { /* Text input, selectbox */
-        background-color: var(--color-input-bg);
+        background-color: var(--color-navy);
     }
     .st-emotion-cache-1v0f73p { /* Slider track */
         background-color: var(--color-border);
     }
     .st-emotion-cache-13k6pro { /* Slider thumb */
-        background-color: var(--color-accent);
+        background-color: var(--color-teal);
     }
 
     /* ============ 7. BUTTONS ============ */
     .stButton > button {
         background-color: transparent;
-        color: var(--color-accent);
-        border: 2px solid var(--color-accent);
+        color: var(--color-teal);
+        border: 2px solid var(--color-teal);
         border-radius: 8px;
         padding: 0.8rem 2rem;
         font-weight: 600;
@@ -123,8 +131,8 @@ def load_corporate_theme_css():
         float: right;
     }
     .stButton > button:hover {
-        background-color: var(--color-accent);
-        color: #000000;
+        background-color: var(--color-teal);
+        color: var(--color-navy);
     }
 
     /* ============ 8. HEADER & TITLE ============ */
@@ -133,21 +141,30 @@ def load_corporate_theme_css():
         margin-bottom: 2rem;
     }
     .title-container h1 {
-        font-size: 2.75rem;
+        font-size: 3rem;
         font-weight: 800;
         letter-spacing: -1px;
+        margin-bottom: 0.25rem;
+    }
+    .title-container .title-expansion {
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: var(--color-teal);
+        margin-bottom: 0.75rem;
     }
     .title-container h2 {
-        font-size: 1.75rem;
+        font-size: 1.4rem;
         font-weight: 500;
-        color: var(--color-text-muted);
+        color: rgba(254, 255, 255, 0.6);
         border-bottom: none; /* override the generic section-container h2 rule */
     }
 
-    /* ============ 9. STEP MECHANISM CARDS (How It Works) ============ */
-    .mechanism-step h4 {
-        color: var(--color-accent);
-        margin-bottom: 0.5rem;
+    /* ============ 9. ALERT BOXES (info / success / warning) ============ */
+    .stAlert {
+        background-color: var(--color-navy) !important;
+        border: 1px solid var(--color-teal) !important;
+        color: var(--color-white) !important;
+        border-radius: 8px;
     }
 
     /* ============ 10. MISC ============ */
@@ -157,11 +174,12 @@ def load_corporate_theme_css():
     """, unsafe_allow_html=True)
 
 def display_prima_header():
-    """Renders the main header as specified by the user."""
+    """Renders the main header: acronym, full name, and subtitle each on their own line."""
     st.markdown(
         """
         <div class="title-container">
-            <h1>P.R.I.M.A.: Premium Risk Indexing and Modeling for Agriculture</h1>
+            <h1>P.R.I.M.A.</h1>
+            <div class="title-expansion">Premium Risk Indexing and Modeling for Agriculture</div>
             <h2>Dynamic Premium Adjustment Model</h2>
         </div>
         """,
@@ -169,8 +187,9 @@ def display_prima_header():
     )
 
 def display_mechanism_section():
-    """Plain-language explainer of how the tool works, shown before the input form."""
-    st.markdown('<div class="section-container">', unsafe_allow_html=True)
+    """Plain-language explainer of how the tool works, shown before the input form.
+    Uses the teal 'focus layer' styling to draw the eye first, like a hero panel."""
+    st.markdown('<div class="section-container focus-layer">', unsafe_allow_html=True)
     st.header("How P.R.I.M.A. Works")
     st.write(
         "Traditional crop insurance charges every farmer in a county the same flat rate, "
@@ -180,23 +199,22 @@ def display_mechanism_section():
     m1, m2, m3 = st.columns(3)
     with m1:
         st.markdown('<div class="mechanism-step">', unsafe_allow_html=True)
-        st.markdown("#### 📝 1. Tell us about your orchard")
+        st.markdown("#### 1. Tell us about your orchard")
         st.write("Enter details about your trees, farming practices, and this season's weather forecast — takes about a minute.")
         st.markdown('</div>', unsafe_allow_html=True)
     with m2:
         st.markdown('<div class="mechanism-step">', unsafe_allow_html=True)
-        st.markdown("#### 🤖 2. Our AI estimates your risk")
+        st.markdown("#### 2. Our AI estimates your risk")
         st.write("Three different machine learning models look at your inputs together and estimate how likely a claim is this season. We show you exactly which factors drove that estimate — nothing is a black box.")
         st.markdown('</div>', unsafe_allow_html=True)
     with m3:
         st.markdown('<div class="mechanism-step">', unsafe_allow_html=True)
-        st.markdown("#### 💰 3. Get a fair, personalized premium")
+        st.markdown("#### 3. Get a fair, personalized premium")
         st.write("That risk estimate directly sets your premium. We show it side-by-side with the traditional flat county rate so you can see exactly how much you're saving.")
         st.markdown('</div>', unsafe_allow_html=True)
     st.info(
         "**A quick note on jargon:** \"Claim probability\" simply means *how likely you are to file an "
-        "insurance claim this season*. Lower is better — it means less risk, a higher Health Score, and a lower premium.",
-        icon="💡"
+        "insurance claim this season*. Lower is better — it means less risk, a higher Health Score, and a lower premium."
     )
     st.markdown('</div>', unsafe_allow_html=True)
 #</editor-fold>
@@ -225,7 +243,7 @@ def load_artifacts():
         )
         return artifacts
     except FileNotFoundError:
-        st.error("Fatal Error: Critical model files not found. Please ensure all 8 artifacts are in the application's root directory.", icon="🚨")
+        st.error("Fatal Error: Critical model files not found. Please ensure all 8 artifacts are in the application's root directory.")
         return None
 
 @st.cache_data
@@ -432,7 +450,7 @@ def main():
             f"**Interpretation:** A Health Score of **{health_score:.1f}/100** places this orchard in the **{health_tier}** tier — "
             f"{health_tier_desc} given the profile and forecast you entered. This score is directly derived from the "
             f"**{results['claim_probability']:.1%} claim probability** our model assigned: the lower that probability, "
-            "the higher your Health Score, and the lower your premium.", icon="💡"
+            "the higher your Health Score, and the lower your premium."
         )
         st.markdown("<hr>", unsafe_allow_html=True)
 
@@ -459,7 +477,7 @@ def main():
             benchmark_verdict = f"Your personalized premium closely matches the {inputs['County']} County traditional rate."
         st.info(
             "**Benchmark Interpretation:** The **Traditional County Rate** is the median premium rate from historical actuarial "
-            f"data for your selected county. {benchmark_verdict}", icon="💡"
+            f"data for your selected county. {benchmark_verdict}"
         )
         st.markdown("<hr>", unsafe_allow_html=True)
 
@@ -497,15 +515,14 @@ def main():
             "represents your financial safety net. The **Coverage per Dollar Spent** acts as an ROI on your risk management "
             "investment. The **Breakeven Yield Loss** provides a clear threshold for when your insurance policy begins to pay "
             f"for itself in a given season. For this quote, **\\${premium_roi:.2f} of coverage per \\$1 of premium** is {roi_note}, "
-            f"and a yield loss beyond **{breakeven_yield_loss:.0f} lbs/acre** is where the policy starts covering its own cost.",
-            icon="💡"
+            f"and a yield loss beyond **{breakeven_yield_loss:.0f} lbs/acre** is where the policy starts covering its own cost."
         )
         st.markdown("<hr>", unsafe_allow_html=True)
 
         # --- Risk Deep Dive ---
         st.subheader("Risk Factor Analysis")
         st.info(
-            "**How to Read This Chart:** **Red bars** represent factors that increased your risk and premium. **Blue bars** represent factors that decreased it. The length of the bar indicates the magnitude of the impact. The 'base value' is the average model prediction.", icon="💡"
+            "**How to Read This Chart:** **Red bars** represent factors that increased your risk and premium. **Blue bars** represent factors that decreased it. The length of the bar indicates the magnitude of the impact. The 'base value' is the average model prediction."
         )
         top_drivers = summarize_shap_drivers(results['shap_values'], results['final_input'], top_n=3)
         driver_phrases = [
