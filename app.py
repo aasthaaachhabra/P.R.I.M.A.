@@ -31,7 +31,7 @@ def load_corporate_theme_css():
 
     /* ============ 1. BRAND PALETTE (edit here to retheme the whole app) ============ */
     :root {
-        --color-bg:         #000000;  /* True black page background */
+        --color-bg:         #17252A;  /* Page background */
         --color-navy:       #17252A;  /* Darkest palette tone: standard content boxes */
         --color-teal-dark:  #2B7A78;  /* 'Focus layer' teal: the intro/hero panel */
         --color-teal:       #3AAFA9;  /* Accent teal: borders, buttons, highlights */
@@ -62,10 +62,10 @@ def load_corporate_theme_css():
 
     /* ============ 4. CONTENT CARDS / SECTIONS ============ */
     .section-container {
-        background-color: var(--color-navy);
+        background-color: rgba(58, 175, 169, 0.08); /* Subtle teal-tinted layer over the page bg */
         padding: 2.5rem;
         border-radius: 12px;
-        border: 1px solid var(--color-border);
+        border: 1px solid var(--color-teal);
         box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
         margin-top: 2rem;
     }
